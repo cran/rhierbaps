@@ -8,7 +8,13 @@ rhierbaps
 Installation
 ------------
 
-`rhierbaps` is currently available on github. It can be installed with `devtools`
+`rhierbaps` is available on CRAN.
+
+``` r
+install.packages("rhierbaps")
+```
+
+The development version is available on github. It can be installed with `devtools`
 
 ``` r
 install.packages("devtools")
@@ -28,7 +34,7 @@ Quick Start
 Run hierBAPS.
 
 ``` r
-# devtools::install_github('gtonkinhill/rhierbaps')
+# install.packages('rhierbaps')
 library(rhierbaps)
 
 fasta.file.name <- system.file("extdata", "seqs.fa", package = "rhierbaps")
@@ -56,7 +62,6 @@ The hierBAPS algorithm was introduced in (Cheng et al. 2013) and provides a meth
 4.  The initial number of populations should be set much higher than the expected number of populations.
 5.  More search rounds of the algorithm can be added using the `n.extra.rounds` parameter.
 6.  To get reproducible results the seed in R must be set.
-7.  When running larger datasets increasing R's stack size limit might be required. `options(expressions=10000)`
 
 Libraries
 ---------
@@ -65,6 +70,7 @@ Libraries
 library(rhierbaps)
 library(ggtree)
 library(phytools)
+library(ape)
 
 set.seed(1234)
 ```
@@ -80,6 +86,13 @@ snp.matrix <- load_fasta(fasta.file.name)
 ```
 
 If you wish to include singleton SNPs (those that appear in only one isolate) then set `keep.singletons=FALSE`. However, this is currently advised against as these SNPs lead to a higher number of parameters in the model and do not provide information about shared ancestry.
+
+It is also possible to load an ape DNAbin object. Here me make use of the woodmouse dataset in ape.
+
+``` r
+data(woodmouse)
+woodmouse.snp.matrix <- load_fasta(woodmouse)
+```
 
 Running hierBAPS
 ----------------
@@ -114,7 +127,7 @@ We can also check how long hierBAPS takes to run on the test dataset of 515 samp
 ``` r
 system.time(hierBAPS(snp.matrix, max.depth = 2, n.pops = 20, quiet = TRUE))
 #>    user  system elapsed 
-#>  81.671   9.840  94.237
+#>  80.761   9.552  91.742
 ```
 
 Plotting results
@@ -138,7 +151,7 @@ gg <- gg + geom_tippoint(aes(color = factor(`level 1`)))
 gg
 ```
 
-![](inst/vignette-supp/unnamed-chunk-13-1.png)
+![](inst/vignette-supp/unnamed-chunk-15-1.png)
 
 As there are many more clusters at the second level using colours to distinguish them can get confusing. Instead we can label the tips with their corresponding clusters.
 
@@ -151,7 +164,7 @@ gg <- gg + geom_tiplab(aes(label = `level 2`), size = 1, offset = 1)
 gg
 ```
 
-![](inst/vignette-supp/unnamed-chunk-14-1.png)
+![](inst/vignette-supp/unnamed-chunk-16-1.png)
 
 We can also zoom in on a particular top level cluster to get a better idea of how it is partitioned at the lower level. As an example we zoom in on sub cluster 9 at level 1.
 
@@ -159,7 +172,7 @@ We can also zoom in on a particular top level cluster to get a better idea of ho
 plot_sub_cluster(hb.results, iqtree, level = 1, sub.cluster = 9)
 ```
 
-![](inst/vignette-supp/unnamed-chunk-15-1.png)
+![](inst/vignette-supp/unnamed-chunk-17-1.png)
 
 Finally, we can inspect the log marginal likelihoods given for each level.
 
@@ -178,6 +191,24 @@ hb.results$lml.list
 #>  -163.3257
 ```
 
+Caculating assignment probabilities
+-----------------------------------
+
+We can also calculate the individual probabilities of assignment to each cluster. Here we make use of the woodmouse dataset loaded earlier.
+
+``` r
+hb.results.woodmouse <- hierBAPS(woodmouse.snp.matrix, max.depth = 2, n.extra.rounds = Inf, 
+    quiet = TRUE, assignment.probs = TRUE)
+head(hb.results.woodmouse$cluster.assignment.prob[[1]])
+#>            Cluster 1    Cluster 2    Cluster 3
+#> No305   9.997868e-01 2.104112e-04 2.805482e-06
+#> No304   5.620947e-06 9.999944e-01 1.699254e-11
+#> No306   8.996214e-03 9.910038e-01 9.626735e-09
+#> No0906S 9.965743e-01 3.425673e-03 1.902359e-08
+#> No0908S 9.911304e-01 8.869359e-03 2.068655e-07
+#> No0909S 2.615477e-09 1.105831e-10 1.000000e+00
+```
+
 Saving results
 --------------
 
@@ -189,6 +220,15 @@ write.csv(hb.results$partition.df, file = file.path(tempdir(), "hierbaps_partiti
 
 save_lml_logs(hb.results, file.path(tempdir(), "hierbaps_logML.txt"))
 ```
+
+Citing rhierbaps
+----------------
+
+If you use rhierbaps in a research publication please cite both
+
+Tonkin-Hill, Gerry, John A. Lees, Stephen D. Bentley, Simon D. W. Frost, and Jukka Corander. 2018. “RhierBAPS: An R Implementation of the Population Clustering Algorithm hierBAPS.” Wellcome Open Research 3 (July): 93.
+
+Cheng, Lu, Thomas R. Connor, Jukka Sirén, David M. Aanensen, and Jukka Corander. 2013. “Hierarchical and Spatially Explicit Clustering of DNA Sequences with BAPS Software.” Molecular Biology and Evolution 30 (5): 1224–28.
 
 References
 ----------

@@ -11,7 +11,7 @@
 
 <meta name="author" content="Gerry Tonkin-Hill" />
 
-<meta name="date" content="2018-07-16" />
+<meta name="date" content="2018-10-10" />
 
 <title>Introduction to rhierbaps</title>
 
@@ -92,6 +92,9 @@ img {
 .tabbed-pane {
   padding-top: 12px;
 }
+.html-widget {
+  margin-bottom: 20px;
+}
 button.code-folding-btn:focus {
   outline: none;
 }
@@ -121,7 +124,7 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">Introduction to rhierbaps</h1>
 <h4 class="author"><em>Gerry Tonkin-Hill</em></h4>
-<h4 class="date"><em>2018-07-16</em></h4>
+<h4 class="date"><em>2018-10-10</em></h4>
 
 </div>
 
@@ -136,13 +139,13 @@ $(document).ready(function () {
 <li>The initial number of populations should be set much higher than the expected number of populations.</li>
 <li>More search rounds of the algorithm can be added using the <code>n.extra.rounds</code> parameter.</li>
 <li>To get reproducible results the seed in R must be set.</li>
-<li>When running larger datasets increasing R’s stack size limit might be required. <code>options(expressions=10000)</code></li>
 </ol>
 <div id="libraries" class="section level2">
 <h2>Libraries</h2>
 <pre class="r"><code>library(rhierbaps)
 library(ggtree)
 library(phytools)
+library(ape)
 
 set.seed(1234)</code></pre>
 </div>
@@ -152,6 +155,9 @@ set.seed(1234)</code></pre>
 <pre class="r"><code>fasta.file.name &lt;- system.file(&quot;extdata&quot;, &quot;seqs.fa&quot;, package = &quot;rhierbaps&quot;)
 snp.matrix &lt;- load_fasta(fasta.file.name)</code></pre>
 <p>If you wish to include singleton SNPs (those that appear in only one isolate) then set <code>keep.singletons=FALSE</code>. However, this is currently advised against as these SNPs lead to a higher number of parameters in the model and do not provide information about shared ancestry.</p>
+<p>It is also possible to load an ape DNAbin object. Here me make use of the woodmouse dataset in ape.</p>
+<pre class="r"><code>data(woodmouse)
+woodmouse.snp.matrix &lt;- load_fasta(woodmouse)</code></pre>
 </div>
 <div id="running-hierbaps" class="section level2">
 <h2>Running hierBAPS</h2>
@@ -173,7 +179,7 @@ head(hb.results$partition.df)</code></pre>
 <p>We can also check how long hierBAPS takes to run on the test dataset of 515 samples and 744 SNPs.</p>
 <pre class="r"><code>system.time(hierBAPS(snp.matrix, max.depth = 2, n.pops = 20, quiet = TRUE))</code></pre>
 <pre><code>##    user  system elapsed 
-##  79.066   8.540  88.098</code></pre>
+##  78.459   8.938  87.585</code></pre>
 </div>
 <div id="plotting-results" class="section level2">
 <h2>Plotting results</h2>
@@ -212,6 +218,20 @@ gg</code></pre>
 ##         13 
 ##  -163.3257</code></pre>
 </div>
+<div id="caculating-assignment-probabilities" class="section level2">
+<h2>Caculating assignment probabilities</h2>
+<p>We can also calculate the individual probabilities of assignment to each cluster. Here we make use of the woodmouse dataset loaded earlier.</p>
+<pre class="r"><code>hb.results.woodmouse &lt;- hierBAPS(woodmouse.snp.matrix, max.depth = 2, n.extra.rounds = Inf, 
+    quiet = TRUE, assignment.probs = TRUE)
+head(hb.results.woodmouse$cluster.assignment.prob[[1]])</code></pre>
+<pre><code>##            Cluster 1    Cluster 2    Cluster 3
+## No305   9.997868e-01 2.104112e-04 2.805482e-06
+## No304   5.620947e-06 9.999944e-01 1.699254e-11
+## No306   8.996214e-03 9.910038e-01 9.626735e-09
+## No0906S 9.965743e-01 3.425673e-03 1.902359e-08
+## No0908S 9.911304e-01 8.869359e-03 2.068655e-07
+## No0909S 2.615477e-09 1.105831e-10 1.000000e+00</code></pre>
+</div>
 <div id="saving-results" class="section level2">
 <h2>Saving results</h2>
 <p>For runs that take a long time it is a good idea to save the output. We can save the partition file as</p>
@@ -220,11 +240,17 @@ gg</code></pre>
 
 save_lml_logs(hb.results, file.path(tempdir(), &quot;hierbaps_logML.txt&quot;))</code></pre>
 </div>
+<div id="citing-rhierbaps" class="section level2">
+<h2>Citing rhierbaps</h2>
+<p>If you use rhierbaps in a research publication please cite both</p>
+<p>Tonkin-Hill, Gerry, John A. Lees, Stephen D. Bentley, Simon D. W. Frost, and Jukka Corander. 2018. “RhierBAPS: An R Implementation of the Population Clustering Algorithm hierBAPS.” Wellcome Open Research 3 (July): 93.</p>
+<p>Cheng, Lu, Thomas R. Connor, Jukka Sirén, David M. Aanensen, and Jukka Corander. 2013. “Hierarchical and Spatially Explicit Clustering of DNA Sequences with BAPS Software.” Molecular Biology and Evolution 30 (5): 1224–28.</p>
+</div>
 <div id="references" class="section level2">
 <h2>References</h2>
 </div>
-<div id="appendix" class="section level2">
-<h2>Appendix</h2>
+<div id="session-information" class="section level2">
+<h2>Session Information</h2>
 <pre class="r"><code>sessionInfo()</code></pre>
 <pre><code>## R version 3.5.0 (2018-04-23)
 ## Platform: x86_64-apple-darwin15.6.0 (64-bit)
@@ -242,43 +268,43 @@ save_lml_logs(hb.results, file.path(tempdir(), &quot;hierbaps_logML.txt&quot;))<
 ## 
 ## other attached packages:
 ## [1] bindrcpp_0.2.2    phytools_0.6-44   maps_3.3.0        ape_5.1          
-## [5] ggtree_1.13.0.007 rhierbaps_1.0.0  
+## [5] ggtree_1.13.0.007 rhierbaps_1.1.0  
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] phangorn_2.4.0          treeio_1.5.1.002       
-##  [3] tidyselect_0.2.4        reshape2_1.4.3         
-##  [5] purrr_0.2.5             splines_3.5.0          
-##  [7] lattice_0.20-35         colorspace_1.3-2       
-##  [9] expm_0.999-2            htmltools_0.3.6        
-## [11] yaml_2.1.18             survival_2.41-3        
-## [13] rlang_0.2.0.9001        pillar_1.2.2           
-## [15] glue_1.2.0              RColorBrewer_1.1-2     
-## [17] rvcheck_0.1.0           bindr_0.1.1            
-## [19] plyr_1.8.4              stringr_1.3.1          
-## [21] combinat_0.0-8          munsell_0.5.0          
-## [23] gtable_0.2.0            mvtnorm_1.0-8          
-## [25] coda_0.19-1             evaluate_0.10.1        
-## [27] labeling_0.3            knitr_1.20             
-## [29] parallel_3.5.0          Rcpp_0.12.17           
-## [31] scales_0.5.0.9000       backports_1.1.2        
-## [33] formatR_1.5             plotrix_3.7            
-## [35] clusterGeneration_1.3.4 RcppParallel_4.4.0     
-## [37] lamW_1.3.0              scatterplot3d_0.3-41   
-## [39] jsonlite_1.5            LambertW_0.6.4         
-## [41] fastmatch_1.1-0         mnormt_1.5-5           
-## [43] ggplot2_3.0.0           digest_0.6.15          
-## [45] stringi_1.2.3           msm_1.6.6              
-## [47] animation_2.5           dplyr_0.7.5            
-## [49] numDeriv_2016.8-1       grid_3.5.0             
-## [51] rprojroot_1.3-2         quadprog_1.5-5         
-## [53] tools_3.5.0             magrittr_1.5           
-## [55] lazyeval_0.2.1          tibble_1.4.2           
-## [57] tidyr_0.8.1             pkgconfig_2.0.1        
-## [59] MASS_7.3-49             Matrix_1.2-14          
-## [61] tidytree_0.1.9          assertthat_0.2.0       
-## [63] rmarkdown_1.9           R6_2.2.2               
-## [65] igraph_1.2.1            nlme_3.1-137           
-## [67] compiler_3.5.0</code></pre>
+##  [1] Rcpp_0.12.19            msm_1.6.6              
+##  [3] mvtnorm_1.0-8           lattice_0.20-35        
+##  [5] tidyr_0.8.1             assertthat_0.2.0       
+##  [7] rprojroot_1.3-2         digest_0.6.16          
+##  [9] R6_2.2.2                plyr_1.8.4             
+## [11] backports_1.1.2         evaluate_0.11          
+## [13] coda_0.19-1             ggplot2_3.0.0          
+## [15] pillar_1.2.2            rlang_0.2.2.9001       
+## [17] lazyeval_0.2.1          phangorn_2.4.0         
+## [19] Matrix_1.2-14           combinat_0.0-8         
+## [21] rmarkdown_1.10          labeling_0.3           
+## [23] splines_3.5.0           stringr_1.3.1          
+## [25] igraph_1.2.1            munsell_0.5.0          
+## [27] compiler_3.5.0          numDeriv_2016.8-1      
+## [29] pkgconfig_2.0.1         mnormt_1.5-5           
+## [31] htmltools_0.3.6         tidyselect_0.2.4       
+## [33] tibble_1.4.2            expm_0.999-2           
+## [35] quadprog_1.5-5          lamW_1.3.0             
+## [37] matrixStats_0.54.0      dplyr_0.7.5            
+## [39] MASS_7.3-49             grid_3.5.0             
+## [41] nlme_3.1-137            jsonlite_1.5           
+## [43] gtable_0.2.0            magrittr_1.5           
+## [45] formatR_1.5             LambertW_0.6.4         
+## [47] scales_1.0.0            RcppParallel_4.4.0     
+## [49] tidytree_0.1.9          stringi_1.2.3          
+## [51] reshape2_1.4.3          scatterplot3d_0.3-41   
+## [53] rvcheck_0.1.0           fastmatch_1.1-0        
+## [55] RColorBrewer_1.1-2      tools_3.5.0            
+## [57] treeio_1.5.1.002        glue_1.3.0             
+## [59] purrr_0.2.5             plotrix_3.7            
+## [61] parallel_3.5.0          survival_2.41-3        
+## [63] yaml_2.2.0              colorspace_1.3-2       
+## [65] animation_2.5           clusterGeneration_1.3.4
+## [67] knitr_1.20              bindr_0.1.1</code></pre>
 <div id="refs" class="references">
 <div id="ref-Cheng2013-mp">
 <p>Cheng, Lu, Thomas R Connor, Jukka Sirén, David M Aanensen, and Jukka Corander. 2013. “Hierarchical and Spatially Explicit Clustering of DNA Sequences with BAPS Software.” <em>Mol. Biol. Evol.</em> 30 (5): 1224–8. doi:<a href="https://doi.org/10.1093/molbev/mst028">10.1093/molbev/mst028</a>.</p>
