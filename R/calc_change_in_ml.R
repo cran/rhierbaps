@@ -14,7 +14,7 @@ calc_change_in_ml <- function(snp.object, partition, indexes){
   if (ncol(snp.object$prior)!=ncol(snp.object$data)) stop("ncol mismatch bwtn prior and data!")
   if (length(partition)!=nrow(snp.object$data)) stop("mismatch bwtn partition and data!")
   if (!(all(indexes %in% 1:length(partition)))) stop("indexes outside of partiton range!")
-  if (!(class(partition)=="integer")) stop("partition is not an integer vector!")
+  if (!(methods::is(partition,"integer"))) stop("partition is not an integer vector!")
 
   original_cluster <- unique(partition[indexes])
   if(length(original_cluster)!=1) stop("there was not a unique cluster in the index set!")

@@ -23,7 +23,7 @@ plot_sub_cluster <- function(hb.object, tree, level, sub.cluster){
   #Checks
   if ((!is.list(hb.object) || !is.data.frame(hb.object$partition.df)
   ) || !is.list(hb.object$lml.list)) stop("Invalid hb.object!")
-  if (!(class(tree)=="phylo")) stop("Invalid tree object!")
+  if (!(methods::is(tree,"phylo"))) stop("Invalid tree object!")
   if ((!is.numeric(level)) || (level<1)) stop("Invalid level! Must be a positive integer.")
   if ((!is.numeric(sub.cluster)) || (sub.cluster<1)) stop("Invalid sub.cluster! Must be a positive integer.")
 

@@ -22,7 +22,7 @@ move_units_1 <- function(snp.object, partition, threshold=1e-5,
   #some checks
   if (ncol(snp.object$prior)!=ncol(snp.object$data)) stop("ncol mismatch bwtn prior and data!")
   if (length(partition)!=nrow(snp.object$data)) stop("mismatch bwtn partition and data!")
-  if (!(class(partition)=="integer")) stop("in move 1 -> partition is not an integer vector!")
+  if (!(methods::is(partition,"integer"))) stop("in move 1 -> partition is not an integer vector!")
 
   nsamples <- nrow(snp.object$data)
   clusters <- unique(partition)
